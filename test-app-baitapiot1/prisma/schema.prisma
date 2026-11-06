@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+// 1 cấu hình cách prisma sinh code để nestjs thao tác với database
+generator client {
+  provider = "prisma-client"            // khai báo mình là client, bên call api và đảm nhiệm sinh mã nguồn
+  output   = "../src/generated/prisma"  // chỉ định nơi lưu code prisma client được sinh ra
+  moduleFormat = "cjs" // Vì project NestJS đang sử dụng CommonJS (CJS), nên Prisma Client được sinh ra cũng cần tương thích với CommonJS.
+}
+
+// 2. khai báo loại cơ sở dữ liệu đang sử dụng
+datasource db {
+  provider = "postgresql"
+}
+
+//datasource: Khai báo nguồn cơ sở dữ liệu.
+//db: Tên tự đặt cho datasource.
+//provider = "postgresql": Cho Prisma biết đang sử dụng PostgreSQL.
+
+// 3 định nghĩa cấu trúc bảng users trong postgresql
+model User {
+  id        Int       @id       @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String?
+  role      Role      @default(user)
+  createAd  DateTime  @default(now())
+
+  profile   Profile?  // Thêm 1 profile cho mỗi User
+  posts     Post[]    // Mỗi User có thể có nhiều Post
+
+  @@map("users")
+}
+
+//@@map("users") là để ánh xạ, tên table là "User" nhưng trong code thì là "users"
+
+model Profile {
+  id Int @id @default(autoincrement())
+  userId Int @unique
+  bio String?
+  avatar String?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Post{
+  id Int @id @default(autoincrement())
+  userId Int
+  title String
+  content String
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// thêm role
+enum Role {
+  user 
+  admin
+}
+
+
+
+
+
